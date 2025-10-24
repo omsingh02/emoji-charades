@@ -347,6 +347,8 @@ function showGameScreen() {
 }
 
 function updateGameUI() {
+    console.log('Updating game UI - Round:', gameState.currentRound, 'Describer:', gameState.describerId, 'MyID:', peerId);
+    
     // Update round info
     document.getElementById('current-round').textContent = gameState.currentRound;
     document.getElementById('max-rounds').textContent = gameState.maxRounds;
@@ -358,6 +360,8 @@ function updateGameUI() {
     // Show appropriate view
     const isDescriber = gameState.describerId === peerId;
     const hasClue = gameState.emojiClue !== '';
+    
+    console.log('View state - isDescriber:', isDescriber, 'hasClue:', hasClue, 'roundInProgress:', gameState.roundInProgress);
     
     document.getElementById('describer-view').classList.toggle('hidden', !isDescriber || hasClue);
     document.getElementById('guesser-view').classList.toggle('hidden', isDescriber || !hasClue);

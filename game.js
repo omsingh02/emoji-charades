@@ -399,19 +399,29 @@ function handlePlayerJoin(player, conn) {
 }
 
 function handleGameStateUpdate(state) {
-    console.log('Updating game state');
+    console.log('Updating game state, round:', state.currentRound, 'describer:', state.describerId);
     gameState = state;
     updateLobbyPlayerList();
     updateScoreDisplay();
+    
+    // If game is running, update the game UI too
+    if (gameState.gameStarted && gameState.currentRound > 0) {
+        console.log('Game is active, updating game UI');
+        updateGameUI();
+    }
 }
 
 function handleGameStart(state) {
-    console.log('Game starting');
+    console.log('Game starting, received state:', state);
     gameState = state;
     showGameScreen();
     
-    // Non-host clients wait for first round state
+    // Update UI immediately with received state
+    updateGameUI();
+    
+    // Non-host clients should update their UI
     if (!isHost) {
+        console.log('Non-host updating UI after game start');
         updateGameUI();
     }
 }
