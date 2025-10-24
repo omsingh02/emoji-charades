@@ -473,3 +473,35 @@ function copyRoomLink() {
         alert('Failed to copy link. Please copy manually.');
     });
 }
+
+// ============================================================================
+// QR CODE GENERATION
+// ============================================================================
+
+function generateQRCode(url) {
+    const canvas = document.getElementById('qr-code');
+    const placeholder = document.getElementById('qr-placeholder');
+    
+    if (typeof QRCode !== 'undefined') {
+        QRCode.toCanvas(canvas, url, {
+            width: 200,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, (error) => {
+            if (error) {
+                console.error('QR Code generation error:', error);
+                placeholder.textContent = 'QR code generation failed';
+            } else {
+                console.log('QR code generated successfully');
+                canvas.style.display = 'block';
+                placeholder.style.display = 'none';
+            }
+        });
+    } else {
+        console.error('QRCode library not loaded');
+        placeholder.textContent = 'QR code library not available';
+    }
+}

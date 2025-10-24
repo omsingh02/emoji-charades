@@ -117,6 +117,9 @@ function initializePeer() {
             document.getElementById('room-link-section').classList.remove('hidden');
             document.getElementById('start-game-btn').classList.remove('hidden');
             updateStatus('Connected - You are the host', 'connected');
+            
+            // Generate QR code
+            generateQRCode(roomLink);
         } else {
             // Guest: Connect to host with timeout
             connectToHost(roomId);
