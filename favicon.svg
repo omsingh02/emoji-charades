@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="#fff" stroke="#000" stroke-width="2"/>
+  
+  <!-- Theater masks - Comedy and Tragedy -->
+  <!-- Happy mask (left) -->
+  <g transform="translate(25, 40)">
+    <ellipse cx="0" cy="0" rx="18" ry="20" fill="none" stroke="#000" stroke-width="2"/>
+    <!-- Eyes -->
+    <circle cx="-6" cy="-5" r="2.5" fill="#000"/>
+    <circle cx="6" cy="-5" r="2.5" fill="#000"/>
+    <!-- Smile -->
+    <path d="M -8,2 Q 0,10 8,2" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Sad mask (right) -->
+  <g transform="translate(75, 40)">
+    <ellipse cx="0" cy="0" rx="18" ry="20" fill="none" stroke="#000" stroke-width="2"/>
+    <!-- Eyes -->
+    <circle cx="-6" cy="-5" r="2.5" fill="#000"/>
+    <circle cx="6" cy="-5" r="2.5" fill="#000"/>
+    <!-- Frown -->
+    <path d="M -8,8 Q 0,0 8,8" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Emoji elements -->
+  <!-- Sparkles -->
+  <text x="15" y="25" font-size="16" fill="#000">✨</text>
+  <text x="75" y="75" font-size="16" fill="#000">✨</text>
+  
+  <!-- Bottom text curve -->
+  <path id="curve" d="M 20,80 Q 50,90 80,80" fill="none"/>
+  <text font-size="10" font-family="monospace" fill="#000">
+    <textPath href="#curve" startOffset="50%" text-anchor="middle">
+      CHARADES
+    </textPath>
+  </text>
+</svg>

@@ -4,16 +4,143 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emoji Charades - P2P Multiplayer</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
-    <style>
-        /* Suckless/Unix Philosophy Styling */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎭 EMOJI CHARADES</h1>
+            <p>P2P Multiplayer Game - No Server Required</p>
+        </header>
 
-        body {
+        <!-- Connection Status -->
+        <div id="connection-status" class="connection-status status-connecting">
+            <strong>Status:</strong> <span id="status-text">Initializing...</span>
+        </div>
+
+        <!-- Lobby Screen -->
+        <div id="lobby-screen">
+            <h2>Game Lobby</h2>
+            
+            <!-- Player Name Input -->
+            <div id="name-input-section">
+                <label for="player-name">Enter your name:</label>
+                <input type="text" id="player-name" placeholder="Your Name" maxlength="20" />
+                <button id="set-name-btn">Set Name</button>
+            </div>
+
+            <!-- Room Link Section (Host Only) -->
+            <div id="room-link-section" class="room-link-container hidden">
+                <h3>Share this link with players:</h3>
+                <div class="room-link" id="room-link"></div>
+                <button id="copy-link-btn">Copy Link</button>
+            </div>
+
+            <!-- Player List -->
+            <div class="player-list">
+                <h3>Players (<span id="player-count">0</span>/6)</h3>
+                <div id="lobby-player-list"></div>
+            </div>
+
+            <!-- Start Game Button (Host Only) -->
+            <div class="text-center">
+                <button id="start-game-btn" class="hidden" disabled>Start Game (Need 2+ players)</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden">
+            <!-- Game Header -->
+            <div class="game-header">
+                <div class="round-info">Round <span id="current-round">1</span> of <span id="max-rounds">10</span></div>
+                <div class="describer-info">Describer: <strong id="current-describer-name">-</strong></div>
+            </div>
+
+            <!-- Game Area -->
+            <div class="game-area">
+                <!-- Main Game Area -->
+                <div class="main-area">
+                    <!-- Clue Section -->
+                    <div class="clue-section">
+                        <!-- For Describer: Show Secret Phrase and Emoji Input -->
+                        <div id="describer-view" class="hidden">
+                            <div class="secret-phrase">
+                                <strong>Your secret phrase:</strong>
+                                <div id="secret-phrase-text" style="font-size: 18px; margin-top: 10px;"></div>
+                            </div>
+                            
+                            <div class="emoji-input-area">
+                                <h3>Create your emoji clue:</h3>
+                                <div class="emoji-preview" id="emoji-preview"></div>
+                                
+                                <div class="emoji-picker" id="emoji-picker"></div>
+                                
+                                <div style="margin-top: 10px;">
+                                    <button id="clear-emoji-btn">Clear</button>
+                                    <button id="submit-clue-btn">Submit Clue</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- For Guessers: Show Emoji Clue -->
+                        <div id="guesser-view" class="hidden">
+                            <h3>Guess the phrase from these emojis:</h3>
+                            <div class="emoji-display" id="emoji-clue-display">Waiting for clue...</div>
+                        </div>
+
+                        <!-- Waiting Message -->
+                        <div id="waiting-view">
+                            <p class="text-center">Waiting for round to start...</p>
+                        </div>
+                    </div>
+
+                    <!-- Chat Section -->
+                    <div class="chat-section">
+                        <h3>Chat / Guesses</h3>
+                        <div class="chat-messages" id="chat-messages"></div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input" placeholder="Type your guess..." />
+                            <button id="send-guess-btn">Send</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar: Scores -->
+                <div class="sidebar">
+                    <h3>Scores</h3>
+                    <div id="score-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Round Results -->
+        <div id="round-results" class="round-results hidden">
+            <h2>Round Over!</h2>
+            <div id="results-content"></div>
+            <p style="margin-top: 15px;">Next round starting soon...</p>
+        </div>
+
+        <!-- Final Leaderboard -->
+        <div id="final-leaderboard" class="hidden">
+            <h2>Game Over!</h2>
+            <div class="leaderboard">
+                <h3>Final Scores</h3>
+                <div id="final-scores"></div>
+            </div>
+            <div class="text-center">
+                <button id="play-again-btn">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load scripts in order -->
+    <script src="config.js"></script>
+    <script src="game.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>
             font-family: 'Courier New', Courier, monospace;
             background: #fff;
             color: #000;
