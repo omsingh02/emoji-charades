@@ -136,7 +136,11 @@ function initializePeer() {
 
     peer.on('connection', (conn) => {
         console.log('Incoming connection from:', conn.peer);
-        handleConnection(conn);
+        
+        // Important: Wait a bit before handling to ensure connection is ready
+        setTimeout(() => {
+            handleConnection(conn);
+        }, 100);
     });
 
     peer.on('error', (err) => {
@@ -184,21 +188,32 @@ function connectToHost(hostId) {
     
     const conn = peer.connect(hostId, {
         reliable: true,
-        serialization: 'json'
+        serialization: 'json',
+        metadata: { 
+            timestamp: Date.now(),
+            userAgent: navigator.userAgent 
+        }
     });
+    
+    // Track connection state
+    let connectionOpened = false;
     
     // Set connection timeout
     const timeout = setTimeout(() => {
-        if (!conn.open) {
-            console.error('Connection timeout');
-            updateStatus('Connection timeout - Host may be offline', 'error');
-            conn.close();
+        if (!connectionOpened) {
+            console.error('Connection timeout - never opened');
+            updateStatus('Connection timeout - Unable to reach host', 'error');
+            if (conn && !conn.open) {
+                conn.close();
+            }
         }
     }, CONFIG.CONNECTION_TIMEOUT);
     
     conn.on('open', () => {
+        connectionOpened = true;
         clearTimeout(timeout);
-        console.log('Connection established with host');
+        console.log('Connection established with host - connection is now open');
+        updateStatus('Connected to host', 'connected');
     });
     
     handleConnection(conn);
@@ -211,8 +226,18 @@ function handleConnection(conn) {
         console.log('Connection opened:', conn.peer);
         connections.set(conn.peer, conn);
         
+        // If host, send current game state immediately to new connection
+        if (isHost) {
+            console.log('Host sending game state to new peer:', conn.peer);
+            sendMessage(conn, {
+                type: 'game-state',
+                state: gameState
+            });
+        }
+        
         // Send player info if name is set
         if (playerName) {
+            console.log('Sending player-join for:', playerName);
             sendMessage(conn, {
                 type: 'player-join',
                 player: {
@@ -233,7 +258,7 @@ function handleConnection(conn) {
     });
 
     conn.on('data', (data) => {
-        console.log('Received data:', data.type);
+        console.log('Received data:', data.type, 'from', conn.peer);
         handleMessage(conn, data);
     });
 
@@ -253,12 +278,12 @@ function sendMessage(conn, message) {
     if (conn && conn.open) {
         try {
             conn.send(message);
-            console.log('Sent message:', message.type);
+            console.log('Sent message:', message.type, 'to', conn.peer);
         } catch (err) {
             console.error('Error sending message:', err);
         }
     } else {
-        console.warn('Attempted to send message on closed connection');
+        console.warn('Attempted to send message on closed/unopened connection:', message.type);
     }
 }
 
@@ -303,7 +328,7 @@ function handleMessage(conn, data) {
 }
 
 function handlePlayerJoin(player, conn) {
-    console.log('Player joining:', player.name);
+    console.log('Player joining:', player.name, 'ID:', player.id);
     
     // Check if player already exists
     const existingPlayer = gameState.players.find(p => p.id === player.id);
@@ -316,20 +341,26 @@ function handlePlayerJoin(player, conn) {
     gameState.players.push(player);
     updateLobbyPlayerList();
     
-    // If host, send current game state to new player and all others
+    // If host, send current game state to new player
     if (isHost) {
-        // Send state to new player
-        if (conn && conn.open) {
-            sendMessage(conn, {
+        // Find the connection for this player
+        const playerConn = connections.get(player.id);
+        if (playerConn && playerConn.open) {
+            console.log('Host sending updated state to new player:', player.name);
+            sendMessage(playerConn, {
                 type: 'game-state',
                 state: gameState
             });
         }
         
-        // Broadcast updated state to all players
-        broadcastMessage({
-            type: 'game-state',
-            state: gameState
+        // Broadcast updated state to all OTHER players
+        connections.forEach((c, peerId) => {
+            if (peerId !== player.id && c.open) {
+                sendMessage(c, {
+                    type: 'game-state',
+                    state: gameState
+                });
+            }
         });
     }
     
