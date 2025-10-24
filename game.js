@@ -135,12 +135,10 @@ function initializePeer() {
     });
 
     peer.on('connection', (conn) => {
-        console.log('Incoming connection from:', conn.peer);
+        console.log('Incoming connection from:', conn.peer, 'Connection state:', conn.open ? 'OPEN' : 'CONNECTING');
         
-        // Important: Wait a bit before handling to ensure connection is ready
-        setTimeout(() => {
-            handleConnection(conn);
-        }, 100);
+        // Handle connection immediately (it might already be open)
+        handleConnection(conn);
     });
 
     peer.on('error', (err) => {
@@ -220,11 +218,18 @@ function connectToHost(hostId) {
 }
 
 function handleConnection(conn) {
-    console.log('Setting up connection handlers for:', conn.peer);
+    console.log('Setting up connection handlers for:', conn.peer, 'Already open?', conn.open);
     
-    conn.on('open', () => {
-        console.log('Connection opened:', conn.peer);
+    // Function to run when connection is ready
+    const onConnectionReady = () => {
+        console.log('✅ Connection READY:', conn.peer);
         connections.set(conn.peer, conn);
+        
+        // Send connection test message
+        sendMessage(conn, {
+            type: 'connection-test',
+            fromPeer: peerId
+        });
         
         // If host, send current game state immediately to new connection
         if (isHost) {
@@ -255,7 +260,20 @@ function handleConnection(conn) {
         if (!isHost && !playerName) {
             addSystemMessage('Connected to host! Please enter your name.');
         }
-    });
+    };
+    
+    // If connection is already open, handle immediately
+    if (conn.open) {
+        console.log('Connection already open, handling immediately');
+        onConnectionReady();
+    } else {
+        // Otherwise wait for open event
+        console.log('Waiting for connection to open...');
+        conn.on('open', () => {
+            console.log('Connection opened event fired:', conn.peer);
+            onConnectionReady();
+        });
+    }
 
     conn.on('data', (data) => {
         console.log('Received data:', data.type, 'from', conn.peer);
@@ -299,7 +317,20 @@ function broadcastMessage(message) {
 // ============================================================================
 
 function handleMessage(conn, data) {
+    console.log('📨 Received:', data.type, 'from:', conn.peer);
+    
     switch (data.type) {
+        case 'connection-test':
+            console.log('Connection test received from:', data.fromPeer);
+            // Send acknowledgment back
+            sendMessage(conn, {
+                type: 'connection-ack',
+                fromPeer: peerId
+            });
+            break;
+        case 'connection-ack':
+            console.log('✅ Connection acknowledged by:', data.fromPeer);
+            break;
         case 'player-join':
             handlePlayerJoin(data.player, conn);
             break;
